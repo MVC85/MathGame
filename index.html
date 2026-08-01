@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Matemática da Nina</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -85,7 +85,7 @@
   .back-link{text-align:center;color:var(--blue);font-weight:700;cursor:pointer;margin-top:auto;padding-top:10px;}
 
   /* ---------- GAME ---------- */
-  #screen-game{padding:14px 16px;}
+  #screen-game{padding:14px 16px calc(20px + env(safe-area-inset-bottom, 0px));}
   .top-bar{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
   .close-btn{font-size:1.6rem;color:var(--grey-dark);cursor:pointer;line-height:1;}
   .progress-track{flex:1;height:14px;background:var(--grey);border-radius:10px;overflow:hidden;}
@@ -106,17 +106,31 @@
   .question-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;overflow:hidden;}
   .level-tag{background:var(--yellow);color:var(--yellow-dark);font-weight:800;padding:4px 14px;border-radius:20px;font-size:.85rem;}
   .level-tag.reinforce{background:var(--orange);color:#fff;}
-  .equation{font-size:2.5rem;font-weight:800;color:var(--text);text-align:center;letter-spacing:1px;line-height:1.2;}
-  .equation .op{color:var(--blue);margin:0 6px;}
-  .equation .eq{color:var(--grey-dark);margin:0 6px;}
+  /* ---------- CONTA ARMADA (papel e lápis) ---------- */
+  .calc-column{
+    display:inline-flex;flex-direction:column;align-items:stretch;
+    font-weight:800;font-size:2.3rem;color:var(--text);margin:0 auto;
+  }
+  .calc-row{
+    display:flex;align-items:center;justify-content:flex-end;gap:8px;line-height:1.25;
+  }
+  .calc-op{
+    width:26px;text-align:left;color:var(--blue);flex-shrink:0;
+  }
+  .calc-num{
+    text-align:right;font-variant-numeric:tabular-nums;
+  }
+  .calc-line{
+    height:4px;background:var(--text);border-radius:2px;margin:6px 0;align-self:stretch;
+  }
+  .calc-answer-row .calc-op{color:var(--grey-dark);}
   .answer-box{
-    min-width:130px;min-height:64px;border:3px solid var(--grey);border-radius:16px;display:flex;
-    align-items:center;justify-content:center;font-size:2rem;font-weight:800;padding:0 18px;
-    color:var(--text);background:#fafafa;transition:border-color .15s, background .15s;
+    border-bottom:4px solid var(--grey);border-radius:2px;padding:0 4px;
+    color:var(--text);background:transparent;transition:border-color .15s, color .15s;
   }
   .answer-box.filled{border-color:var(--blue);}
-  .answer-box.correct{border-color:var(--green);background:#eaffd9;color:var(--green-dark);}
-  .answer-box.wrong{border-color:var(--red);background:#ffe0e0;color:var(--red-dark);}
+  .answer-box.correct{border-color:var(--green);color:var(--green-dark);}
+  .answer-box.wrong{border-color:var(--red);color:var(--red-dark);}
   .answer-box.shake{animation:shake .35s;}
   @keyframes shake{
     0%,100%{transform:translateX(0);}
@@ -142,14 +156,15 @@
   .ten-rod .sq{width:14px;height:6px;background:var(--blue);border-radius:2px;}
   .unit-sq{width:16px;height:16px;background:var(--green);border:2px solid var(--green-dark);border-radius:4px;}
 
-  .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
+  .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px;margin-bottom:8px;}
   .key{
-    padding:14px 0;font-size:1.4rem;font-weight:800;border-radius:14px;border:none;
+    padding:22px 0;font-size:1.4rem;font-weight:800;border-radius:14px;border:none;
     background:var(--grey);color:var(--text);box-shadow:0 4px 0 #d1d1d1;cursor:pointer;
   }
   .key:active{transform:translateY(3px);box-shadow:0 1px 0 #d1d1d1;}
   .key.back{background:#ffe1e1;color:var(--red-dark);box-shadow:0 4px 0 #f5c2c2;}
-  .send-btn{margin-top:10px;width:100%;}
+  .key.send-inline{background:var(--green);color:#fff;font-size:1.7rem;box-shadow:0 4px 0 var(--green-dark);}
+  .key.send-inline:active{background:var(--green-dark);}
 
   /* ---------- LEVEL COMPLETE / GAME OVER ---------- */
   #screen-levelcomplete, #screen-gameover{align-items:center;justify-content:center;text-align:center;gap:12px;overflow-y:auto;}
@@ -209,8 +224,15 @@
 
     <div class="question-area">
       <div class="level-tag" id="level-tag">Nível 1</div>
-      <div class="equation" id="equation"></div>
-      <div class="answer-box" id="answer-box">?</div>
+
+      <div class="calc-column" id="calc-column">
+        <div id="calc-rows"></div>
+        <div class="calc-line" id="calc-line"></div>
+        <div class="calc-row calc-answer-row">
+          <span class="calc-op">=</span>
+          <span class="calc-num answer-box" id="answer-box">?</span>
+        </div>
+      </div>
 
       <div class="blocks-wrap" id="blocks-wrap">
         <div class="blocks-caption" id="blocks-caption"></div>
@@ -235,9 +257,8 @@
       <button class="key" data-num="9">9</button>
       <button class="key back" id="key-back">⌫</button>
       <button class="key zero" data-num="0">0</button>
-      <div></div>
+      <button class="key send-inline" id="btn-enviar">✓</button>
     </div>
-    <button class="btn btn-green send-btn" id="btn-enviar">Enviar</button>
   </div>
 
   <!-- LEVEL COMPLETE -->
@@ -477,12 +498,28 @@ function generateChallenge(levelConfig){
 
 function renderEquation(challenge){
   const symbols = { '+': '+', '-': '−' };
-  let html = `<span>${challenge.numbers[0]}</span>`;
-  for(let i = 0; i < challenge.ops.length; i++){
-    html += `<span class="op">${symbols[challenge.ops[i]]}</span><span>${challenge.numbers[i+1]}</span>`;
-  }
-  html += `<span class="eq">=</span><span>?</span>`;
-  document.getElementById('equation').innerHTML = html;
+
+  // largura em "casas" (unidades, dezenas, centenas...) baseada no maior número da conta
+  const maxDigits = Math.max(
+    ...challenge.numbers.map(n => String(n).length),
+    String(challenge.answer).length
+  );
+
+  const rowsContainer = document.getElementById('calc-rows');
+  rowsContainer.innerHTML = '';
+
+  challenge.numbers.forEach((num, i) => {
+    const row = document.createElement('div');
+    row.className = 'calc-row';
+    const opChar = i === 0 ? '' : symbols[challenge.ops[i - 1]];
+    row.innerHTML =
+      `<span class="calc-op">${opChar}</span>` +
+      `<span class="calc-num" style="min-width:${maxDigits}ch">${num}</span>`;
+    rowsContainer.appendChild(row);
+  });
+
+  // largura do traço e da casa da resposta acompanham o mesmo número de dígitos
+  document.getElementById('answer-box').style.minWidth = maxDigits + 'ch';
 }
 
 function equationText(challenge){
